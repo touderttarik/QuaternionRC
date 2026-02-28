@@ -1,51 +1,37 @@
-# RC - Telecommande ESP32 pour le drone
+# QuaternionRC - ESP32 Remote Controller
 
-Firmware ESP-IDF de la telecommande du projet quadcopter.
+This repository is the remote side of my quadcopter project.
+The idea is simple: get a reliable wireless link first, then layer flight commands on top of it.
 
-## Objectif
+## What this project does right now
 
-Ce projet implemente la partie "Remote" (telecommande):
-- connexion Wi-Fi au point d'acces du drone,
-- etablissement d'un canal de transport avec le controleur de vol,
-- base logicielle pour envoyer ensuite les commandes de pilotage.
+### Wi-Fi link setup (`components/wifi/link_layer.c`)
+- Initializes NVS, network stack, and event loop with ESP-IDF.
+- Connects as a station (`WIFI_MODE_STA`) to the drone access point.
+- Tracks connection state through `wifiStatus`.
+- Retries connection automatically when the link drops.
 
-## Ce qui est deja fait
+### Transport layer (`components/wifi/transport_layer.c`)
+- Opens a TCP client connection to the flight controller.
+- Uses `recvn()` and `sendn()` helpers to avoid partial read/write issues.
+- Runs a basic startup handshake:
+  - send `"Hello Drone !"`
+  - wait for and verify `"Hello Remote !"`
+- Keeps a UDP socket skeleton ready for real-time control packets.
 
-### 1) Couche liaison Wi-Fi (`components/wifi/link_layer.c`)
-- Initialisation NVS, netif, boucle d'evenements ESP-IDF.
-- Connexion en mode station (`WIFI_MODE_STA`) au SSID cible.
-- Gestion des evenements Wi-Fi/IP avec suivi d'etat via `wifiStatus`.
-- Reconnexion automatique avec nombre limite de tentatives.
+### App flow (`main/main.c`)
+- Boots the remote firmware.
+- Waits for Wi-Fi connectivity.
+- Starts a FreeRTOS transport task.
+- Synchronizes startup with semaphores before moving to control logic.
 
-### 2) Couche transport (`components/wifi/transport_layer.c`)
-- Mise en place d'un client TCP vers le drone.
-- Fonctions robustes `recvn()` et `sendn()` pour lire/ecrire le nombre d'octets voulu.
-- Handshake initial implementé:
-  - envoi de `"Hello Drone !"`
-  - attente et verification de `"Hello Remote !"`
-- Squelette de socket UDP cree pour les echanges non critiques.
+## Project structure
 
-### 3) Integration applicative (`main/main.c`)
-- Sequence de boot du firmware remote.
-- Connexion Wi-Fi au reseau du drone.
-- Lancement de la tache transport FreeRTOS.
-- Synchronisation initiale via semaphore avant la suite des operations.
+- `main/`: application entry point and startup sequence.
+- `components/wifi/link_layer.*`: Wi-Fi connection and status handling.
+- `components/wifi/transport_layer.*`: TCP/UDP sockets and handshake logic.
 
-## Structure du projet
-
-- `main/`: point d'entree du firmware remote.
-- `components/wifi/link_layer.*`: connexion et etat Wi-Fi.
-- `components/wifi/transport_layer.*`: sockets TCP/UDP et handshake.
-
-## Prochaines etapes
-
-- Definir le format des paquets de commande (gaz/roll/pitch/yaw).
-- Mettre en place l'envoi periodique des commandes de vol sur UDP.
-- Ajouter un canal de messages critiques (arming/disarming/failsafe).
-- Ajouter des timeouts/retry plus stricts et une gestion de perte de lien.
-- Ajouter des tests de validation du protocole remote <-> drone.
-
-## Build (ESP-IDF)
+## Build and flash (ESP-IDF)
 
 ```bash
 idf.py set-target esp32
@@ -53,6 +39,14 @@ idf.py build
 idf.py flash monitor
 ```
 
-## Auteur
+## Planned next steps
+
+- Define a clean packet format for throttle, roll, pitch, and yaw.
+- Stream control commands over UDP at a fixed rate.
+- Add a robust critical-message path (arming/disarming/failsafe).
+- Improve timeout and reconnection behavior.
+- Validate the full remote-to-drone protocol with repeatable tests.
+
+## Author
 
 Tarik
