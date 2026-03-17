@@ -170,6 +170,8 @@ void transport_task(void *pvParameters) {
     int num_ready ; //number of ready file descriptors for input
 
     for(;;){
+        //read_joysticks() ;
+        //calculate_setpoint() ;
         FD_SET(tcp_sock, &readfds); //Since the select syscall modifies the sets of file descriptors
         //it is necessary to reinitialize the sets to the file descriptors of interest.    
         num_ready=select(tcp_sock + 1, &readfds, NULL, NULL, &timeout) ;

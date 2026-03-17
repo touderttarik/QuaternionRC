@@ -64,5 +64,7 @@ void app_main(void)
         xSemaphoreTake(sem, portMAX_DELAY);
         ESP_LOGI(TAG, "Hello Remote received !") ;
     }
+
+
     //
 }

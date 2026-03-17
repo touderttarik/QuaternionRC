@@ -2,7 +2,6 @@
 #define ORIENTATIONAPI_MATRIX_H
 
 #include "quaternions.h"
-#include "joystick_input.h"
 
 typedef struct {
     float R[3][3] ;
