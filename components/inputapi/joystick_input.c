@@ -30,6 +30,8 @@
 #define JOY_DEFAULT_CENTER_MV  1650
 #define JOY_DEFAULT_MAX_MV     3150
 
+#define DEG_TO_RAD M_PI/180
+
 typedef struct {
     int gpio;
     int sign;
@@ -371,10 +373,10 @@ esp_err_t joystick_input_read(joystick_values_t *out_values)
     }
 
     memset(out_values, 0, sizeof(*out_values));
-    out_values->roll = norm[JOYSTICK_AXIS_ROLL];
-    out_values->pitch = norm[JOYSTICK_AXIS_PITCH];
+    out_values->roll = norm[JOYSTICK_AXIS_ROLL]*45*DEG_TO_RAD;
+    out_values->pitch = norm[JOYSTICK_AXIS_PITCH]*45*DEG_TO_RAD;
     out_values->throttle_stick = norm[JOYSTICK_AXIS_THROTTLE];
-    out_values->yaw = norm[JOYSTICK_AXIS_YAW];
+    out_values->yaw = norm[JOYSTICK_AXIS_YAW]*90*DEG_TO_RAD;
 
     out_values->throttle = 0.5f * (out_values->throttle_stick + 1.0f);
     out_values->throttle = clampf_local(out_values->throttle, 0.0f, 1.0f);

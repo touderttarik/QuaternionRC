@@ -1,5 +1,4 @@
 #include "transport_layer.h"
-
 #include "esp_log.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
@@ -7,8 +6,29 @@
 #include "lwip/sockets.h"
 #include "string.h"
 #include <unistd.h>
-
+#include "joystick_input.h"
 #define TAG "Remote Transport"
+
+
+uint32_t htonf(float* f) {
+    uint32_t result = 0 ;
+    unsigned char* p = (unsigned char*) f;
+    result = *p<<24 | *(p+1)<<16 | *(p+2)<<8 | *(p+3);
+    return result ;
+}
+
+float ntohf(uint32_t* u) {
+    float* f = NULL;
+    unsigned char* pu = (unsigned char*) u ;
+    unsigned char* pf = (unsigned char*) f ;
+    *pf = *(pu+3) ;
+    *(pf+1) = *(pu+2) ;
+    *(pf+2) = *(pu+1) ;
+    *(pf+3) = *pu ;
+    return *f ;
+}
+
+
 
 ssize_t recvn(int8_t sock, void *buffer, size_t count) {
     ssize_t num_read ; //# of bytes fetched by last read()
@@ -72,8 +92,10 @@ void transport_task(void *pvParameters) {
     //See later for heartbeat
     //I'll just try to send some data 
     msg.set_point.flight_profile = 1 ;
-    msg.set_point.q_w_be = 1.0f ;
-    msg.set_point.q_x_be = 0.0f ;
+    msg.set_point.q_w_be = htonl(0x0102);
+    msg.set_point.q_x_be = htonl(0x0304);
+    msg.set_point.q_y_be = htonl(0x0506);
+    msg.set_point.q_z_be = htonl(0x0708);
 
     // local_addr: "My local endpo int8_t" -> the local IP/port the tcp_socket is bound to.
     // In TCP server: used by bind() + listen() to choose the listening port.   
@@ -138,33 +160,36 @@ void transport_task(void *pvParameters) {
             ESP_LOGE(TAG,"recvbuf[%d]= %c", i, recvbuf[i]);
         }
     }
-
+    //loop waiting for arm command
     ESP_LOGI(TAG,"Arming the ESCs...");
     
-    fd_set *readfds ; //File descriptor set used to poll the tcp_socket for possible input(if input is possible from the socket)
+    fd_set readfds ; //File descriptor set used to poll the tcp_socket for possible input(if input is possible from the socket)
     struct timeval timeout = {0} ;
-    FD_ZERO(readfds) ;
+    FD_ZERO(&readfds) ;
     
     int num_ready ; //number of ready file descriptors for input
 
     for(;;){
-        FD_SET(tcp_sock, readfds); //Since the select syscall modifies the sets of file descriptors
+        FD_SET(tcp_sock, &readfds); //Since the select syscall modifies the sets of file descriptors
         //it is necessary to reinitialize the sets to the file descriptors of interest.    
-        num_ready=select(2, readfds, NULL, NULL, &timeout) ;
+        num_ready=select(tcp_sock + 1, &readfds, NULL, NULL, &timeout) ;
         if(num_ready==-1){ 
-            ESP_LOGE(TAG,"Error during select() call on tcp socket. errno=%d", errno) ;
+            //ESP_LOGE(TAG,"Error during select() call on tcp socket. errno=%d", errno) ;
         }
-        if(num_ready==1 && FD_ISSET(tcp_sock, readfds)){
-            ESP_LOGI(TAG,"tcp socket ready for input operation. errno=%d", errno) ;
-            //send the msg ?
+        if(num_ready==1 && FD_ISSET(tcp_sock, &readfds)){
+           // ESP_LOGI(TAG,"tcp socket ready for input operation. errno=%d", errno) ;
+            //calculate the quaternion
+            //send it via dgram socket
             //error_code = readn();
             //read the telemetry data and implement telemetry logic
         }
         else{
-            //simply send msg
+            //calculate the quaternion
+            //send it via dgram socket
         }
 
         //!!Put a vtaskdelay at the end!!
+        vTaskDelay(pdMS_TO_TICKS(10));
     }
 
     if(udp_sock > 0){

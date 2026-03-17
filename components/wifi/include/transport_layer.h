@@ -1,6 +1,13 @@
 #pragma once
+
+#include <stdbool.h>
+#include <stddef.h>
+#include <stdint.h>
+#include <sys/types.h>
+
 #include "freertos/FreeRTOS.h"
 #include "freertos/semphr.h"
+#include "joystick_input.h"
 
 #define BUF_SIZE 128
 #define PACKETS_TO_SEND 1
@@ -31,7 +38,7 @@ typedef struct {
 #pragma pack(push, 1)
 
 typedef struct {
-    uint32_t q_w_be ; // float32 IEEE-754 representend as an uint32_t (method from Beej's network prog)
+    uint32_t q_w_be ; // float32 IEEE-754 representend as an uint32_t 
     uint32_t q_x_be ;
     uint32_t q_y_be ;
     uint32_t q_z_be ;
@@ -75,3 +82,9 @@ ssize_t recvn(int8_t sock, void *buffer, size_t count) ;//I will use this functi
 ssize_t sendn(int8_t sock, void *buffer, size_t count) ;//Same
 //The recvn and sendn function will be useful in case of a failed send or rec system call and they will handle the return error
 //and implement a restart mechanism.
+
+uint32_t htonf(float* f) ;
+float ntohf(uint32_t* u) ;
+
+void htonsp(joystick_values_t* hsp, udp_set_point_v1_t* nsp); //host to network setpoint
+void ntohsp(); //network to host setpoint

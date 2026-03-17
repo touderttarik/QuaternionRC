@@ -50,6 +50,7 @@ void app_main(void)
     }
 
     esp_err_t joy_err = joystick_input_init();
+    
     if (joy_err != ESP_OK) {
         ESP_LOGE(TAG, "joystick_input_init failed: %s", esp_err_to_name(joy_err));
     } else {
@@ -63,7 +64,5 @@ void app_main(void)
         xSemaphoreTake(sem, portMAX_DELAY);
         ESP_LOGI(TAG, "Hello Remote received !") ;
     }
-    
-    
-
+    //
 }
