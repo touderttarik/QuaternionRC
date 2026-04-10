@@ -12,10 +12,19 @@ void transport_task(void *pvParameters) {
     char recvbuf[BUF_SIZE];
     udp_msg_t *msg = NULL;
     joystick_values_t *v = NULL;
-
+    quat_t *q_sp = NULL ;
     msg = malloc(sizeof(udp_msg_t));
     v = malloc(sizeof(joystick_values_t)) ;
-    
+    q_sp = malloc(sizeof(quat_t)) ;
+    msg->msg_type = 0 ;
+    msg->set_point.q_w_be = 0;
+    msg->set_point.q_x_be = 0;
+    msg->set_point.q_y_be = 0;
+    msg->set_point.q_z_be = 0;
+    q_sp -> w=0.0f;
+    q_sp -> x=0.0f;
+    q_sp -> y=0.0f;
+    q_sp -> z=0.0f;
 
     // local_addr: "My local endpo int8_t" -> the local IP/port the tcp_socket is bound to.
     // In TCP server: used by bind() + listen() to choose the listening port.   
@@ -98,15 +107,21 @@ void transport_task(void *pvParameters) {
     FD_ZERO(&readfds) ;
     
     int num_ready ; //number of ready file descriptors for input
-
+    if(joystick_input_init()==ESP_OK){
+        ESP_LOGI(TAG,"Joystick Init success");
+    }else{
+        ESP_LOGI(TAG,"Joystick init fail");
+    }
     for(;;){
         joystick_input_read(v) ;
+        ESP_LOGI(TAG, "angles : yaw= %f pitch= %f roll= %f", v->angles.yaw, v->angles.pitch, v->angles.roll);
         calculate_setpoint(&msg->set_point, v) ;
+
         FD_SET(tcp_sock, &readfds); //Since the select syscall modifies the sets of file descriptors
         //it is necessary to reinitialize the sets to the file descriptors of interest.    
         num_ready=select(tcp_sock + 1, &readfds, NULL, NULL, &timeout) ;
         if(num_ready==-1){ 
-            //ESP_LOGE(TAG,"Error during select() call on tcp socket. errno=%d", errno) ;
+            ESP_LOGE(TAG,"Error during select() call on tcp socket. errno=%d", errno) ;
         }
         if(num_ready==1 && FD_ISSET(tcp_sock, &readfds)){
             ESP_LOGI(TAG,"tcp socket ready for input operation. errno=%d", errno) ;
@@ -120,7 +135,7 @@ void transport_task(void *pvParameters) {
         }
 
         //!!Put a vtaskdelay at the end!!
-        vTaskDelay(pdMS_TO_TICKS(10));
+        vTaskDelay(pdMS_TO_TICKS(300));
     }
 
     if(udp_sock > 0){

@@ -11,15 +11,19 @@ int32_t event_id, void* event_data){
     switch(event_id){
         case WIFI_EVENT_STA_START :
             wifiStatus = 1001 ;
+            ESP_LOGI("Wi-Fi station start.");
             break ;
         case WIFI_EVENT_STA_CONNECTED :
             wifiStatus = 1002 ;
+            //ESP_LOGI(TAG, "Remote connected.") ;
             break ;
         case WIFI_EVENT_STA_DISCONNECTED : 
+            ESP_LOGI(TAG, "Remote disconnected, trying to reconnect") ;
             if(retry_num < 5){
                 esp_wifi_connect();
                 retry_num ++ ;
-                wifiStatus = 1001 ; 
+                wifiStatus = 1001 ;
+                ESP_LOGI(TAG,"Trial number = %d", retry_num);
             }
             break ;
         case IP_EVENT_STA_GOT_IP:

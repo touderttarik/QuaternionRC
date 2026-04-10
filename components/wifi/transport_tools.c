@@ -7,12 +7,12 @@
 uint32_t htonf(float* f) {
     uint32_t result = 0 ;
     unsigned char* p = (unsigned char*) f;
-    result = *p<<24 | *(p+1)<<16 | *(p+2)<<8 | *(p+3);
+    result = *(p+3)<<24 | *(p+2)<<16 | *(p+1)<<8 | *(p);
     return result ;
 }
-
 float ntohf(uint32_t* u) {
     float* f = NULL;
+    f = malloc(sizeof(float)) ;
     unsigned char* pu = (unsigned char*) u ;
     unsigned char* pf = (unsigned char*) f ;
     *pf = *(pu+3) ;
@@ -21,6 +21,7 @@ float ntohf(uint32_t* u) {
     *(pf+3) = *pu ;
     return *f ;
 }
+
 
 void htonsp(udp_set_point_v1_t* sp, quat_t *q_sp){
     float q_sp_w, q_sp_x, q_sp_y, q_sp_z ;
@@ -33,8 +34,16 @@ void htonsp(udp_set_point_v1_t* sp, quat_t *q_sp){
     sp->q_y_be = htonf(&q_sp_y);
     sp->q_z_be = htonf(&q_sp_z);
 
-
 }
+
+void ntohsp(udp_set_point_v1_t* sp, quat_t *q_sp){//network to host setpoint
+    q_sp->w = ntohf(&sp->q_w_be);
+    q_sp->x = ntohf(&sp->q_x_be);
+    q_sp->y = ntohf(&sp->q_y_be);
+    q_sp->z = ntohf(&sp->q_z_be);
+} 
+
+
 
 
 ssize_t recvn(int8_t sock, void *buffer, size_t count) {
