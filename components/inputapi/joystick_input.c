@@ -373,10 +373,12 @@ esp_err_t joystick_input_read(joystick_values_t *out_values)
     }
 
     memset(out_values, 0, sizeof(*out_values));
-    out_values->roll = norm[JOYSTICK_AXIS_ROLL]*45*DEG_TO_RAD;
-    out_values->pitch = norm[JOYSTICK_AXIS_PITCH]*45*DEG_TO_RAD;
+    out_values->angles = (angles_t) {
+        .roll = norm[JOYSTICK_AXIS_ROLL] * 45 * DEG_TO_RAD,
+        .pitch = norm[JOYSTICK_AXIS_PITCH] * 45 * DEG_TO_RAD,
+        .yaw = norm[JOYSTICK_AXIS_YAW] * 90 * DEG_TO_RAD,
+    };
     out_values->throttle_stick = norm[JOYSTICK_AXIS_THROTTLE];
-    out_values->yaw = norm[JOYSTICK_AXIS_YAW]*90*DEG_TO_RAD;
 
     out_values->throttle = 0.5f * (out_values->throttle_stick + 1.0f);
     out_values->throttle = clampf_local(out_values->throttle, 0.0f, 1.0f);

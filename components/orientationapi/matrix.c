@@ -1,5 +1,7 @@
 #include "matrix.h"
+#include <math.h>
 #include "stdint.h" // pour avoir le type uint8_t
+
 
 matrix_t get_skew_mat(vec3_t v){
 
@@ -34,4 +36,17 @@ vec3_t mat_vec_prod (matrix_t mat, vec3_t v){
     prod.z = prod_for_looping[2] ;
 
     return prod ;
+}
+
+void euler_to_rotmat(angles_t *angles, matrix_t *rotmat){
+    rotmat->R[0][0] = cosf(angles->yaw)*cosf(angles->pitch);
+    rotmat->R[0][1] = cosf(angles->yaw)*sinf(angles->pitch)*sinf(angles->roll) - sinf(angles->yaw)*cosf(angles->roll) ;
+    rotmat->R[0][2] = cosf(angles->yaw)*sinf(angles->pitch)*cosf(angles->roll) + sinf(angles->yaw)*sinf(angles->roll) ;
+    rotmat->R[1][0] = sinf(angles->yaw)*sinf(angles->pitch) ;
+    rotmat->R[1][1] = sinf(angles->yaw)*sinf(angles->pitch)*sinf(angles->roll) + cosf(angles->yaw)*cosf(angles->roll) ;
+    rotmat->R[1][2] = sinf(angles->yaw)*sinf(angles->pitch)*cosf(angles->roll) - cosf(angles->yaw)*sinf(angles->roll) ;
+    rotmat->R[2][0] = -sinf(angles->pitch) ;
+    rotmat->R[2][1] = cosf(angles->pitch)*sinf(angles->roll) ;
+    rotmat->R[2][2] = cosf(angles->pitch)*cosf(angles->roll) ;
+
 }

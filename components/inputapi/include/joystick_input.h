@@ -2,7 +2,7 @@
 
 #include <stdbool.h>
 #include <stdint.h>
-
+#include "types.h"
 #include "esp_err.h"
 
 #ifdef __cplusplus
@@ -30,18 +30,6 @@ typedef enum {
     JOYSTICK_AXIS_COUNT
 } joystick_axis_t;
 
-typedef struct {
-    float roll;            // [-1.0, +1.0]
-    float pitch;           // [-1.0, +1.0]
-    float yaw;             // [-1.0, +1.0] (corrected orientation)
-    float throttle_stick;  // [-1.0, +1.0] (corrected orientation)
-    float throttle;        // [0.0, +1.0]
-
-    bool right_switch_pressed; // GPIO25, active low
-    bool left_switch_pressed;  // GPIO26, active low
-
-    uint64_t timestamp_us;
-} joystick_values_t;
 
 /** Initialize ADC, calibration and GPIO inputs for joystick switches. */
 esp_err_t joystick_input_init(void);

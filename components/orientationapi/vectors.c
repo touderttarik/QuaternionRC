@@ -23,6 +23,7 @@
 #include "vectors.h"
 #include <math.h>
 
+
 float get_vect_norm(vec3_t v){
     float norm = sqrtf(v.x*v.x+v.y*v.y+v.z*v.z);
     return norm ;
@@ -53,4 +54,3 @@ vec3_t cross_prod(vec3_t u, vec3_t v) {
     res.z = u.x * v.y - u.y * v.x;
     return res;
 }
-

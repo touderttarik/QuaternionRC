@@ -86,7 +86,8 @@
  * @return The normalized unit quaternion
  */
 #include "quaternions.h"
-#include "math.h"
+#include <math.h>
+
 
 quat_t quat_make(float w, float x, float y, float z){
     quat_t q ;
@@ -216,4 +217,27 @@ vec3_t quat_rotate_vec(quat_t q_unit, vec3_t v)
     return rotmat_apply(R, v);
 }
 
+void rotmat_to_quat(matrix_t rotmat, quat_t *q){
+    float t =(float) rotmat.R[0][0]+rotmat.R[1][1]+rotmat.R[2][2] ;//matrix trace
+    
+    if(t>0){
+        float S = 2*sqrtf(t+1) ;
+        float S_inverse = (float)1/S;
+        q->w = S*1/4 ;
+        q->x = S_inverse*(rotmat.R[2][1]-rotmat.R[1][2]) ;
+        q->y = S_inverse*(rotmat.R[0][2]-rotmat.R[2][0]) ;
+        q->z = S_inverse*(rotmat.R[1][0]-rotmat.R[0][1]);
+    }
+    else{
+        if(t<=0){
+            float S = 2*sqrtf(1.0f+rotmat.R[0][0]-rotmat.R[1][1]-rotmat.R[2][2]) ;
+            float S_inverse = (float)1/S;
+            q->w = S_inverse*(rotmat.R[2][1]-rotmat.R[1][2]) ;
+            q->x = S*1/4 ;
+            q->y = S_inverse*(rotmat.R[0][1]+rotmat.R[1][0]) ;
+            q->z = S_inverse*(rotmat.R[0][2]+rotmat.R[2][0]);
+        }
+    }
+    
+}
 

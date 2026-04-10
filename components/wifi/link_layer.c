@@ -1,5 +1,7 @@
 #include "link_layer.h"
 
+#define TAG "Remote Link Layer"
+
 static volatile int retry_num = 0;
 volatile int wifiStatus = 1000;
 
@@ -22,6 +24,7 @@ int32_t event_id, void* event_data){
             break ;
         case IP_EVENT_STA_GOT_IP:
             wifiStatus = 1010 ;
+            xSemaphoreGive(wifi_sem);
             break ;
     }
 

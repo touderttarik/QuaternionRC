@@ -1,7 +1,7 @@
 #ifndef ORIENTATIONAPI_VECTORS_H
 #define ORIENTATIONAPI_VECTORS_H
 
-#include "quaternions.h"
+#include "types.h"
 
 float get_vect_norm(vec3_t v);
 void vect_normalize(vec3_t *v);
